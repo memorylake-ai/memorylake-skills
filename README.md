@@ -34,13 +34,13 @@ This skill works with any AI coding agent that supports MCP or can execute shell
     </td>
     <td align="center" width="160">
       <a href="https://antigravity.google">
-        <img src="https://cdn.simpleicons.org/google/4285F4" width="48" height="48" alt="Google Antigravity" /><br />
+        <img src="https://brandlogos.net/wp-content/uploads/2025/12/google_antigravity-logo_brandlogos.net_qu4jc-512x472.png" width="48" height="48" alt="Google Antigravity" /><br />
         <b>Google Antigravity</b>
       </a>
     </td>
     <td align="center" width="160">
       <a href="https://openclaw.ai">
-        <img src="https://cdn.simpleicons.org/github/181717" width="48" height="48" alt="OpenClaw" /><br />
+        <img src="https://pub-9d9ac8d48a724b8eb296cf20dfd3c940.r2.dev/OpenClaw/ClawBot.png" width="48" height="48" alt="OpenClaw" /><br />
         <b>OpenClaw</b>
       </a>
     </td>
