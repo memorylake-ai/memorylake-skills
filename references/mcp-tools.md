@@ -1,51 +1,60 @@
 # MemoryLake MCP Tools Reference
 
+## HTTP Protocol
+
+MemoryLake uses the MCP Streamable HTTP protocol:
+- **Transport:** HTTPS POST with SSE (Server-Sent Events) responses
+- **Session:** Initialize first to get a `Mcp-Session-Id`, then pass it in all subsequent requests
+- **Format:** JSON-RPC 2.0 over SSE — responses come as `event: message` / `data: {...}` lines
+- **Result extraction:** Filter for `data:` lines containing the request `"id"`, take the last one
+
+The `scripts/memorylake_client.sh` handles all of this automatically.
+
+---
+
 ## get_memorylake_metadata
 
 Returns an overview of the memorylake including total file counts by type and sample memories.
 
-**Parameters:** None
+**Arguments:** `{}` (none)
 
-**Response fields:**
-- `total_files` — Total number of files in the memorylake
+**Response `structuredContent.result` fields:**
+- `total_files` — Total number of files
 - `total_excel_files`, `total_pdf_files`, `total_txt_files` — Counts by type
-- `sample_memories[]` — Array of sample memory objects with:
+- `sample_memories[]` — Array of sample memory objects:
   - `id` — Memory ID (use with `fetch_memory` and `get_memory_path()`)
   - `name` — Original filename
-  - `type` — File type (e.g., `excel_file`, `pdf_file`)
+  - `type` — `excel_file`, `pdf_file`, or `txt_file`
   - `num_chunks`, `num_figures`, `num_tables` — Content statistics
   - `sheet_names` — (Excel only) List of worksheet names
 
-**When to use:** At the start of a session, or when the user asks "what files do I have?" or "what's in my memorylake?"
+**When to use:** At the start of a session, or when the user asks "what files do I have?"
 
 ---
 
 ## search_memory
 
-Performs semantic and keyword search across all indexed file content.
+Performs hybrid semantic + keyword search across all indexed file content.
 
-**Parameters:** A `parsed_query` object with these required fields:
+**Arguments:** `{"parsed_query": {...}}` with these required fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `bm25_cleaned_query` | string | Query optimized for BM25 exact-term matching. Remove stop words, punctuation, normalize spaces. Keep technical terms and proper nouns intact. |
-| `named_entities` | string[] | All detected named entities (people, organizations, locations, products). Critical for retrieval. |
-| `bm25_keywords` | string[] | Important keywords for BM25 search. Must include all named entities. |
-| `bm25_boost_keywords` | string[] | 3-5 boost keywords to increase ranking. Include named entities and distinctive terms. |
-| `rewritten_query_for_dense_model` | string | Semantically rewritten query for vector retrieval. Expand with synonyms, capture intent. |
+| `bm25_cleaned_query` | string | Query for BM25 matching. Remove stop words, punctuation, normalize spaces. Keep technical terms intact. |
+| `named_entities` | string[] | All named entities (people, orgs, locations, products). Critical for retrieval. |
+| `bm25_keywords` | string[] | Important keywords. Must include all named entities. |
+| `bm25_boost_keywords` | string[] | 3-5 boost keywords. Include named entities and distinctive terms. |
+| `rewritten_query_for_dense_model` | string | Semantic query for vector retrieval. Expand with synonyms, capture intent. |
 
-**Response fields:**
-- `results[]` — Array of matching memories, each with:
-  - `id` — Memory ID
-  - `name` — Original filename
-  - `summary` — AI-generated summary of the matching content
-- `n` — Total number of results
+**Response `structuredContent.result` fields:**
+- `results[]` — Matching memories, each with `id`, `name`, `summary`
+- `n` — Total result count
 
-**Query optimization tips:**
-- For Chinese content, remove stop words: 的, 了, 吗, 呢, 是, 在, 有, 和, 与, 或
-- Remove question words: 什么, 怎么, 如何, 为什么, 哪里, 哪个
+**Query tips:**
+- Chinese stop words to remove: 的, 了, 吗, 呢, 是, 在, 有, 和, 与, 或
+- Chinese question words to remove: 什么, 怎么, 如何, 为什么, 哪里, 哪个
 - Keep hyphens, underscores, dots in technical terms
-- Named entities are the highest-signal terms — always include them in keywords and boost
+- Named entities are highest-signal — always boost them
 
 ---
 
@@ -53,34 +62,34 @@ Performs semantic and keyword search across all indexed file content.
 
 Retrieves detailed metadata for one or more memories by ID.
 
-**Parameters:**
-- `memory_ids` — string[] — List of memory IDs to fetch
+**Arguments:** `{"memory_ids": ["ds-id1", "ds-id2"]}`
 
-**Response:** Dictionary mapping memory_id to metadata including name, type, description, and type-specific details (e.g., sheet names for Excel files).
-
-**When to use:** After `search_memory` returns results, to get more detail about specific files before deciding whether to analyze them with code.
+**Response `structuredContent` fields:** Dictionary mapping memory_id to metadata:
+- `id`, `name`, `source_type` — Basic info
+- `summary` — AI-generated summary
+- `presigned_url` — Direct download URL (may be null)
 
 ---
 
 ## create_memory_code_runner
 
-Creates a new Python execution environment and returns an `executor_id`.
+Creates a Python execution environment. Returns an `executor_id`.
 
-**Parameters:** None
+**Arguments:** `{}` (none)
 
-**Returns:** An `executor_id` string (e.g., `executor-6fd400a155...`)
+**Response:** `{"result": {"executor_id": "executor-..."}}`
 
-**Important:** Create one executor per session. Reuse the same `executor_id` for all subsequent `run_memory_code` calls to maintain state (loaded DataFrames, variables, imports).
+Create one per session. Reuse for all `run_memory_code` calls.
 
 ---
 
 ## run_memory_code
 
-Executes Python 3 code in the sandboxed environment.
+Executes Python 3 code in a sandboxed environment.
 
-**Parameters:**
-- `executor_id` — string (required) — From `create_memory_code_runner`
-- `code` — string (required) — Complete, standalone Python code
+**Arguments:**
+- `executor_id` — string (from `create_memory_code_runner`)
+- `code` — string (complete Python code)
 
 **Available packages:** pandas, numpy, openpyxl, xlrd, scipy, scikit-learn, xgboost
 
@@ -88,47 +97,18 @@ Executes Python 3 code in the sandboxed environment.
 ```python
 def get_memory_path(memory_id: str, memory_name: str) -> pathlib.Path
 ```
-Returns a local file path to access the memory file for analysis.
 
 **Key rules:**
 - Always `print()` results — not interactive mode
-- `matplotlib` is NOT available — do not attempt to render images
-- Code must be complete and standalone per call (imports, etc.)
+- `matplotlib` is NOT available
+- Code must be standalone per call (include imports)
 - State persists across calls with the same `executor_id`
 
 **Common patterns:**
 
-Reading an Excel file:
 ```python
 import pandas as pd
 path = get_memory_path("ds-abc123", "filename.xlsx")
 df = pd.read_excel(path, sheet_name="Sheet1")
 print(df.head())
-print(df.shape)
-```
-
-Reading all sheets:
-```python
-import pandas as pd
-path = get_memory_path("ds-abc123", "filename.xlsx")
-sheets = pd.read_excel(path, sheet_name=None)
-for name, df in sheets.items():
-    print(f"\n=== {name} ===")
-    print(df.head())
-```
-
-Aggregation across files:
-```python
-import pandas as pd
-files = [
-    ("ds-id1", "file1.xlsx"),
-    ("ds-id2", "file2.xlsx"),
-]
-all_data = []
-for mid, mname in files:
-    path = get_memory_path(mid, mname)
-    df = pd.read_excel(path)
-    all_data.append(df)
-combined = pd.concat(all_data, ignore_index=True)
-print(combined.describe())
 ```

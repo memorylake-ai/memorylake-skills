@@ -1,8 +1,9 @@
 ---
 name: memorylake
 description: >
-  Search, retrieve, and analyze data from a MemoryLake MCP Server — the memory layer for AI Agents
-  that provides intelligent unstructured file content retrieval and data analysis.
+  Search, retrieve, and analyze data from a MemoryLake Streamable HTTP MCP Server — the memory
+  layer for AI Agents that provides intelligent unstructured file content retrieval and data analysis.
+  Access the server directly via HTTP/curl (not via pre-configured MCP tools).
   Use this skill when the user wants to: (1) search for information across uploaded files in MemoryLake,
   (2) retrieve specific documents or data from MemoryLake, (3) analyze data stored in MemoryLake
   using Python code execution, (4) explore what's available in a MemoryLake memorylake,
@@ -15,84 +16,115 @@ description: >
 # MemoryLake Skill
 
 MemoryLake is the memory layer for AI Agents. It ingests unstructured files (Excel, PDF, text, etc.),
-chunks and indexes them, and exposes them through an MCP Server for intelligent retrieval and analysis.
+chunks and indexes them, and exposes them through a Streamable HTTP MCP Server for intelligent
+retrieval and analysis. This skill accesses the server directly via HTTP using `curl`.
 
-## MCP Tools Overview
+## Prerequisites
 
-MemoryLake provides these MCP tools. See [references/mcp-tools.md](references/mcp-tools.md) for detailed usage.
+The user must provide a MemoryLake MCP Server URL with API key, e.g.:
+```
+https://ai.data.cloud/memorylake/mcp/v1?apikey=sk-dset-...
+```
 
-| Tool | Purpose |
-|------|---------|
-| `get_memorylake_metadata` | Explore memorylake structure: file counts by type, sample memories |
-| `search_memory` | Semantic + keyword search across all files |
-| `fetch_memory` | Get detailed metadata for specific memory IDs |
-| `create_memory_code_runner` | Create a Python executor for stateful code execution |
-| `run_memory_code` | Execute Python code against MemoryLake data |
+## Client Script
+
+Use `scripts/memorylake_client.sh` for all interactions. It handles MCP session initialization,
+JSON-RPC protocol, and SSE response parsing.
+
+```bash
+# Initialize a session (required before any tool calls)
+SESSION=$(./scripts/memorylake_client.sh "$MCP_URL" init)
+
+# Call any tool
+./scripts/memorylake_client.sh "$MCP_URL" "$SESSION" <tool_name> ['<json_arguments>']
+```
+
+**Session management:** Sessions can expire if idle. If a call returns empty or an error,
+re-initialize with `init` before retrying. Minimize delay between init and the first tool call.
+
+## Available Tools
+
+| Tool | Arguments | Purpose |
+|------|-----------|---------|
+| `get_memorylake_metadata` | *(none)* | Explore memorylake: file counts by type, sample memories |
+| `search_memory` | `{"parsed_query":{...}}` | Semantic + keyword search across all files |
+| `fetch_memory` | `{"memory_ids":["id1",...]}` | Detailed metadata for specific memories |
+| `create_memory_code_runner` | *(none)* | Create a Python executor, returns `executor_id` |
+| `run_memory_code` | `{"executor_id":"...","code":"..."}` | Execute Python code against data |
+
+See [references/mcp-tools.md](references/mcp-tools.md) for detailed parameters and response formats.
 
 ## Workflow
 
-### 1. Orient: Understand the memorylake
+### 1. Initialize session and orient
 
-Before searching, call `get_memorylake_metadata` to understand what's available — total files,
-file types, and sample memories with sheet names and summaries.
-
-### 2. Search: Find relevant content
-
-Use `search_memory` with a structured query. Build high-quality queries by:
-
-- Extracting all named entities into `named_entities` and `bm25_keywords`
-- Writing a clean BM25 query (remove stop words, punctuation, normalize)
-- Writing a semantic dense query that captures intent and adds synonyms
-- Selecting 3-5 boost keywords for the most distinctive terms
-
-**Query construction example** for "What recruitment positions require a master's degree?":
-
-```json
-{
-  "bm25_cleaned_query": "recruitment positions master degree requirement",
-  "named_entities": [],
-  "bm25_keywords": ["recruitment", "positions", "master", "degree", "requirement", "hiring"],
-  "bm25_boost_keywords": ["master", "recruitment", "degree"],
-  "rewritten_query_for_dense_model": "Job positions and recruitment plans that require a master's degree or higher education qualification"
-}
+```bash
+MCP_URL="<user-provided-url>"
+SESSION=$(./scripts/memorylake_client.sh "$MCP_URL" init)
+./scripts/memorylake_client.sh "$MCP_URL" "$SESSION" get_memorylake_metadata
 ```
 
-### 3. Deep-dive: Fetch memory details
+### 2. Search for relevant content
 
-After search results identify relevant memories, call `fetch_memory` with their IDs to get:
-- File metadata (name, type, author)
-- Excel-specific details (worksheet names)
-- Content statistics (chunks, tables, figures)
+Build a structured query with both BM25 keywords and a semantic dense query:
 
-### 4. Analyze: Run code against the data
+```bash
+./scripts/memorylake_client.sh "$MCP_URL" "$SESSION" search_memory '{
+  "parsed_query": {
+    "bm25_cleaned_query": "recruitment positions master degree",
+    "named_entities": [],
+    "bm25_keywords": ["recruitment", "positions", "master", "degree"],
+    "bm25_boost_keywords": ["master", "recruitment"],
+    "rewritten_query_for_dense_model": "Job positions requiring a master degree or higher"
+  }
+}'
+```
 
-For quantitative analysis, aggregation, or data transformation:
+**Query construction tips:**
+- Extract all named entities into `named_entities` and `bm25_keywords`
+- Clean BM25 query: remove stop words, punctuation, normalize spaces
+- Dense query: rewrite to capture intent, expand with synonyms
+- Boost keywords: 3-5 most distinctive terms
 
-1. Call `create_memory_code_runner` once to get an `executor_id`
-2. Call `run_memory_code` with that `executor_id` and Python code
-3. Use `get_memory_path(memory_id, memory_name)` inside code to access files locally
-4. State persists across calls with the same `executor_id` — build analysis incrementally
+### 3. Fetch memory details
+
+```bash
+./scripts/memorylake_client.sh "$MCP_URL" "$SESSION" fetch_memory '{"memory_ids":["ds-abc123"]}'
+```
+
+### 4. Analyze with code execution
+
+```bash
+# Create executor (once per session)
+./scripts/memorylake_client.sh "$MCP_URL" "$SESSION" create_memory_code_runner
+
+# Run code (use executor_id from above)
+./scripts/memorylake_client.sh "$MCP_URL" "$SESSION" run_memory_code '{
+  "executor_id": "executor-...",
+  "code": "import pandas as pd\npath = get_memory_path(\"ds-abc\", \"file.xlsx\")\ndf = pd.read_excel(path)\nprint(df.describe())"
+}'
+```
 
 **Available packages:** pandas, numpy, openpyxl, xlrd, scipy, scikit-learn, xgboost.
+Always `print()` results — not an interactive environment. `matplotlib` is NOT available.
 
-**Code execution pattern:**
+## Parsing Responses
 
-```python
-import pandas as pd
+The script outputs JSON-RPC result lines. Extract data with:
 
-path = get_memory_path("ds-abc123", "data.xlsx")
-df = pd.read_excel(path, sheet_name="Sheet1")
-print(df.describe())
-print(df.columns.tolist())
+```bash
+# Parse with python
+RESULT=$(./scripts/memorylake_client.sh "$MCP_URL" "$SESSION" get_memorylake_metadata)
+echo "$RESULT" | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin)['result']['structuredContent'], indent=2))"
 ```
 
-Always `print()` results explicitly — this is not an interactive environment.
+The `structuredContent` field contains the typed response object. The `content[0].text` field
+contains the same data as a JSON string.
 
 ## Best Practices
 
 - **Start broad, then narrow.** Use `get_memorylake_metadata` first, then targeted searches.
-- **Iterate searches.** If initial results are insufficient, refine keywords and semantic queries.
-- **Combine search + code.** Search to find relevant files, then use code execution to analyze their contents in detail.
-- **Reuse executor_id.** Create one code runner per session and reuse it for all code executions to maintain state (loaded DataFrames, variables, etc.).
-- **Handle multilingual content.** MemoryLake files may contain Chinese, English, or mixed content. Write search queries in the language matching the data.
-- **Present results clearly.** Summarize findings in natural language. For data analysis, show key numbers and insights rather than raw output.
+- **Reuse sessions.** Initialize once, call multiple tools. Re-init only if session expires.
+- **Handle multilingual content.** Write search queries in the language matching the data.
+- **Combine search + code.** Search to find files, then analyze with code execution.
+- **Reuse executor_id.** Create one code runner and reuse for all code calls to maintain state.
