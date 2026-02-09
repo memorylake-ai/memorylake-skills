@@ -10,7 +10,7 @@ This skill works with any AI coding agent that supports MCP or can execute shell
   <tr>
     <td align="center" width="160">
       <a href="https://docs.anthropic.com/en/docs/claude-code">
-        <img src="https://cdn.simpleicons.org/anthropic/181818" width="48" height="48" alt="Claude Code" /><br />
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Claude_AI_symbol.svg/1280px-Claude_AI_symbol.svg.png" width="48" height="48" alt="Claude Code" /><br />
         <b>Claude Code</b>
       </a>
     </td>
