@@ -1,14 +1,67 @@
-# MemoryLake Skill for Claude Code
+# MemoryLake Skills
 
-A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill that enables AI agents to search, retrieve, and analyze data from a [MemoryLake](https://memorylake.ai/) server — the memory layer for AI Agents.
+A skill that enables AI agents to search, retrieve, and analyze data from a [MemoryLake](https://memorylake.ai/) server — the memory layer for AI Agents.
+
+## Compatible Platforms
+
+This skill works with any AI coding agent that supports MCP or can execute shell commands:
+
+<table>
+  <tr>
+    <td align="center" width="160">
+      <a href="https://docs.anthropic.com/en/docs/claude-code">
+        <img src="https://cdn.simpleicons.org/anthropic/181818" width="48" height="48" alt="Claude Code" /><br />
+        <b>Claude Code</b>
+      </a>
+    </td>
+    <td align="center" width="160">
+      <a href="https://cursor.com">
+        <img src="https://cdn.simpleicons.org/cursor/F54E00" width="48" height="48" alt="Cursor" /><br />
+        <b>Cursor</b>
+      </a>
+    </td>
+    <td align="center" width="160">
+      <a href="https://openai.com/codex/">
+        <img src="https://cdn.simpleicons.org/openai/412991" width="48" height="48" alt="OpenAI Codex" /><br />
+        <b>OpenAI Codex</b>
+      </a>
+    </td>
+    <td align="center" width="160">
+      <a href="https://manus.im">
+        <img src="https://cdn.simpleicons.org/meta/0081FB" width="48" height="48" alt="Manus" /><br />
+        <b>Manus</b>
+      </a>
+    </td>
+    <td align="center" width="160">
+      <a href="https://antigravity.google">
+        <img src="https://cdn.simpleicons.org/google/4285F4" width="48" height="48" alt="Google Antigravity" /><br />
+        <b>Google Antigravity</b>
+      </a>
+    </td>
+    <td align="center" width="160">
+      <a href="https://openclaw.ai">
+        <img src="https://cdn.simpleicons.org/github/181717" width="48" height="48" alt="OpenClaw" /><br />
+        <b>OpenClaw</b>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Anthropic's agentic<br/>CLI for Claude</sub></td>
+    <td align="center"><sub>AI-powered<br/>code editor</sub></td>
+    <td align="center"><sub>OpenAI's terminal<br/>coding agent</sub></td>
+    <td align="center"><sub>Autonomous AI<br/>agent by Meta</sub></td>
+    <td align="center"><sub>Google's agent-first<br/>IDE with Gemini</sub></td>
+    <td align="center"><sub>Open-source personal<br/>AI assistant</sub></td>
+  </tr>
+</table>
+
+> **How it works:** The skill uses a shell script (`scripts/memorylake_client.sh`) that accesses the MemoryLake Streamable HTTP MCP Server via `curl`. Any AI agent that can execute bash commands can use it — no MCP client integration required.
 
 ## What is MemoryLake?
 
-MemoryLake ingests unstructured files (Excel, PDF, text, etc.), chunks and indexes their content, and exposes it through a [Streamable HTTP MCP Server](https://modelcontextprotocol.io/) for intelligent retrieval and data analysis. It gives AI agents long-term memory over your documents.
+[MemoryLake](https://memorylake.ai/) ingests unstructured files (Excel, PDF, text, etc.), chunks and indexes their content, and exposes it through a [Streamable HTTP MCP Server](https://modelcontextprotocol.io/) for intelligent retrieval and data analysis. It gives AI agents long-term memory over your documents.
 
 ## What This Skill Does
-
-This skill teaches Claude Code how to interact with any MemoryLake MCP server directly over HTTP. It provides:
 
 - **Hybrid search** — Semantic + keyword (BM25) search across all indexed documents
 - **File exploration** — Browse memorylake contents, file types, and metadata
@@ -31,7 +84,7 @@ memorylake-skills/
 
 ### 1. Install the skill
 
-Download `memorylake-skills.skill` from [Releases](https://github.com/memorylake-ai/memorylake-skills/releases) or clone this repo, then install in Claude Code:
+Download `memorylake-skills.skill` from [Releases](https://github.com/memorylake-ai/memorylake-skills/releases) or clone this repo, then install in your AI agent. For example, in Claude Code:
 
 ```
 /skill install memorylake-skills.skill
@@ -47,7 +100,7 @@ https://ai.data.cloud/memorylake/mcp/v1?apikey=sk-dset-YOUR_API_KEY
 
 ### 3. Ask questions about your data
 
-Once installed, Claude Code can:
+Once installed, your AI agent can:
 
 - *"What files are in my memorylake?"*
 - *"Search for budget reports from 2024"*
@@ -97,14 +150,13 @@ SESSION=$(./scripts/memorylake_client.sh "$MCP_URL" init)
 ## Requirements
 
 - **curl** (included on macOS and most Linux distros)
-- **Claude Code** for skill installation and usage
 - A **MemoryLake API key** from [memorylake.ai](https://memorylake.ai/)
 
 ## Links
 
 - [MemoryLake](https://memorylake.ai/) — The memory layer for AI Agents
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — Anthropic's CLI for Claude
 - [Model Context Protocol](https://modelcontextprotocol.io/) — The protocol MemoryLake implements
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) | [Cursor](https://cursor.com) | [OpenAI Codex](https://openai.com/codex/) | [Manus](https://manus.im) | [Google Antigravity](https://antigravity.google) | [OpenClaw](https://openclaw.ai)
 
 ## License
 
