@@ -1,0 +1,3783 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Memorylake API",
+        "description": "The most advanced memorylake - Project and Document management API. All endpoints require the X-User-ID header for user identification.",
+        "contact": {
+            "name": "Memorylake Team",
+            "email": "support@memorylake.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "v1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "Development Server"
+        },
+        {
+            "url": "https://api.memorylake.com",
+            "description": "Production Server"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Connectors",
+            "description": "Third-party service connector APIs - Handle OAuth authentication for external providers like WPS, Feishu, etc."
+        },
+        {
+            "name": "Admin",
+            "description": "Internal admin APIs (no X-User-ID required)"
+        },
+        {
+            "name": "Drives",
+            "description": "Drive management APIs - Manage files and folders in user's drive"
+        },
+        {
+            "name": "Projects",
+            "description": "Project management APIs - Create, read, update and delete projects, manage project-document and project-memory associations"
+        },
+        {
+            "name": "WPS Connectors",
+            "description": "WPS Connector management APIs - Manage WPS document library connectors"
+        },
+        {
+            "name": "Arena",
+            "description": "Arena related APIs for user profile and project management"
+        }
+    ],
+    "paths": {
+        "/api/v1/projects/{id}": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get project by ID",
+                "description": "Retrieves a project by its ID. Returns project details including document and memory counts.",
+                "operationId": "getProject",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID (format: proj-{uuid})",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Project found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Update project",
+                "description": "Updates an existing project's name and/or description",
+                "operationId": "updateProject",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Updated project details",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProjectUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Project updated successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Delete project",
+                "description": "Soft deletes a project. The project is marked as deleted but not removed from the database.",
+                "operationId": "deleteProject",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Project deleted successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperVoid"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/projects/{id}/memories/{itemId}": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get memory item from project",
+                "description": "Retrieves a specific memory item from the project's associated memory.",
+                "operationId": "getMemoryItemFromProject",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "itemId",
+                        "in": "path",
+                        "description": "Memory Item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "item-12345"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Memory item retrieved successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetMemoryXItemXResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project or memory item not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Update memory item in project",
+                "description": "Updates an existing memory item in the project's associated memory.",
+                "operationId": "updateMemoryItemInProject",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "itemId",
+                        "in": "path",
+                        "description": "Memory Item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "item-12345"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Updated memory item details",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProjectMemoryRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Memory item updated successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperVoid"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project or memory item not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Remove memory item from project",
+                "description": "Deletes a memory item from the project's associated memory.",
+                "operationId": "removeMemoryItemFromProject",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "itemId",
+                        "in": "path",
+                        "description": "Memory Item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "item-12345"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Memory item removed successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperVoid"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project or memory item not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/drives/items/{item_id}/xattrs": {
+            "put": {
+                "tags": [
+                    "Drives"
+                ],
+                "summary": "Set xattrs",
+                "description": "Sets extended attributes on an item (file or directory).",
+                "operationId": "setItemXattrs",
+                "parameters": [
+                    {
+                        "name": "item_id",
+                        "in": "path",
+                        "description": "Item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Xattr data",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ItemXattrSetRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Xattrs set successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Item not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Drives"
+                ],
+                "summary": "Delete xattrs",
+                "description": "Deletes extended attributes from an item (file or directory) by keys.",
+                "operationId": "deleteItemXattrs",
+                "parameters": [
+                    {
+                        "name": "item_id",
+                        "in": "path",
+                        "description": "Item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    {
+                        "name": "key",
+                        "in": "query",
+                        "description": "Comma-separated list of keys to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "key1,key2,key3"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Xattrs deleted successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Item not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/upload/create-multipart": {
+            "post": {
+                "tags": [
+                    "upload-controller"
+                ],
+                "operationId": "createMultipartUpload",
+                "parameters": [
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateMultipartUploadRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperMultipartUploadInfo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/upload/complete-multipart": {
+            "post": {
+                "tags": [
+                    "upload-controller"
+                ],
+                "operationId": "completeMultipartUpload",
+                "parameters": [
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CompleteMultipartUploadRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/projects": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "List projects",
+                "description": "Returns a paginated list of projects created by the current user with optional filtering by name. User is identified by X-User-ID header.",
+                "operationId": "listProjects",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (1-based)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "default": 1,
+                            "minimum": 1
+                        },
+                        "example": 1
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "description": "Page size",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        },
+                        "example": 20
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Filter by project name (partial match)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "My Project"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Projects retrieved successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PageResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Create a new project",
+                "description": "Creates a new project with the provided name and description. Returns the created project with a generated ID in format proj-{uuid}",
+                "operationId": "createProject",
+                "parameters": [
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Project creation details",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProjectCreateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Project created successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request - name or description missing",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/projects/{id}/memories": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "List memory items in project",
+                "description": "Returns a list of memory items from the project's associated memory",
+                "operationId": "listProjectMemoryItems",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "itemPathPrefix",
+                        "in": "query",
+                        "description": "Item path prefix filter",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "notes/"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Memory items retrieved successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Add memory item to project",
+                "description": "Creates a new memory item in the project's associated memory. Returns the created item ID.",
+                "operationId": "addMemoryItemToProject",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Memory item details to add to the project",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProjectMemoryRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Memory item added successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request or project has no associated memory",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/projects/{id}/documents": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "List documents in project",
+                "description": "Returns a paginated list of documents associated with the project, including document ID, file name, and creation time",
+                "operationId": "listProjectDocuments",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (1-based)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "default": 1,
+                            "minimum": 1
+                        },
+                        "example": 1
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "description": "Page size",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        },
+                        "example": 20
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Documents retrieved successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Create project documents (batch)",
+                "description": "Creates project documents by importing files from drive. Creates datasources in the project's dataset and associates the files with the project.",
+                "operationId": "createProjectDocuments",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "List of drive item IDs of the files to import",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProjectDocumentRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Project documents batch create completed",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProjectDocumentBatchCreateResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request - unsupported file type or invalid drive item IDs",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project or file not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Remove documents from project (batch)",
+                "description": "Removes documents from a project (soft delete). The associations are marked as deleted.",
+                "operationId": "removeDocumentsFromProject",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "List of project document IDs to delete",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProjectDocumentDeleteRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Documents removed successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperVoid"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project or document associations not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/projects/{id}/documents/quick-add": {
+            "post": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Quick add document to project",
+                "description": "Quick add a document to the project. The file should be uploaded to S3 first via /api/v1/upload endpoints. This endpoint will idempotently initialize the user's drive and My Space if they don't exist, upload the file to My Space with automatic name conflict resolution, and create the project document association.",
+                "operationId": "quickAddDocumentToProject",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Quick add document request details",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/QuickAddDocumentRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Document added to project successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/QuickAddDocumentResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request - missing required fields or unsupported file type",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found or object key not found in S3",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/projects/{id}/apikeys": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "List API keys for project",
+                "description": "Returns a list of API keys associated with the project's dataset. Only the key suffix (last 4 characters) is returned for security purposes.",
+                "operationId": "listProjectApikeys",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "API keys retrieved successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetDatasetXApikeyListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Create API key for project",
+                "description": "Creates a new API key for the project's associated dataset. The full API key secret is only returned once during creation.",
+                "operationId": "createProjectApikey",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "API key creation details",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PostDatasetXApikeyRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "API key created successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PostDatasetXApikeyResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/drives": {
+            "get": {
+                "tags": [
+                    "Drives"
+                ],
+                "summary": "Get drive",
+                "description": "Gets the drive for the current user. Each user has exactly one drive.",
+                "operationId": "getDrive",
+                "parameters": [
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Drive found successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriveResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Drive not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Drives"
+                ],
+                "summary": "Create drive",
+                "description": "Creates a new drive for the current user. Each user has exactly one drive. This operation is idempotent: if drive already exists, returns the existing drive.",
+                "operationId": "createDrive",
+                "parameters": [
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Drive created successfully or already exists (idempotent)",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriveResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/drives/items/{item_id}/mount-point": {
+            "post": {
+                "tags": [
+                    "Drives"
+                ],
+                "summary": "Create mount point",
+                "description": "Creates a mount point by creating a storage instance and mounting it at the specified parent item.",
+                "operationId": "createMountPoint",
+                "parameters": [
+                    {
+                        "name": "item_id",
+                        "in": "path",
+                        "description": "Parent item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Request for creating a mount point",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/components/schemas/WPSMountPointCreateRequest"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Drive or parent item not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/drives/items/{item_id}/children": {
+            "get": {
+                "tags": [
+                    "Drives"
+                ],
+                "summary": "List child items",
+                "description": "Lists files and directories under the specified parent item.",
+                "operationId": "listChildren",
+                "parameters": [
+                    {
+                        "name": "item_id",
+                        "in": "path",
+                        "description": "Parent item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    {
+                        "name": "continuation_token",
+                        "in": "query",
+                        "description": "Continuation token for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "Y6Wa982_Jj_A9-Kw40"
+                    },
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "description": "Page size (minimum 1). Default 100 when omitted.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32",
+                            "minimum": 1
+                        },
+                        "example": 50
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Child items retrieved successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileTreeResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Drives"
+                ],
+                "summary": "Create child item",
+                "description": "Creates a new file or folder in the specified parent directory. Use item_type=file/folder.",
+                "operationId": "createChild",
+                "parameters": [
+                    {
+                        "name": "item_id",
+                        "in": "path",
+                        "description": "Parent item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Child item creation details (item_type=file/folder)",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "string",
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/components/schemas/FileCreateRequest"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/FolderCreateRequest"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "400": {
+                        "description": "Invalid request",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Parent item not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Directory contains a file or directory with the same name",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/arena/profile": {
+            "post": {
+                "tags": [
+                    "Arena"
+                ],
+                "summary": "Create or get user arena profile",
+                "description": "Creates an arena profile for the current user if it doesn't exist. If the user already has an arena profile, returns the existing project ID. The user ID is obtained from the X-User-ID header.",
+                "operationId": "createUserProfile",
+                "parameters": [
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Arena profile created or retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArenaProfileResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperArenaProfileResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/arena/documents": {
+            "post": {
+                "tags": [
+                    "Arena"
+                ],
+                "summary": "Create arena document",
+                "description": "Upload a document to the arena folder in user's My Space and create a project document association. The file should be uploaded to S3 first via /api/v1/upload endpoints. If the arena folder doesn't exist, it will be created. If a file with the same name exists, a suffix (_1, _2, etc.) will be added.",
+                "operationId": "createDocument",
+                "parameters": [
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Arena document creation details",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArenaDocumentRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Document created successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArenaDocumentResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request - missing required fields or unsupported file type",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found or object key not found in S3",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/projects/initialize-mem0": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Initialize mem0 projects",
+                "description": "Scans all non-deleted projects with missing mem0_proj_id, creates mem0 project for each and updates the binding. For internal use. No X-User-ID required.",
+                "operationId": "initializeMem0Projects",
+                "responses": {
+                    "200": {
+                        "description": "Initialization completed",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InitializeMem0ProjectsResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/drives/items/{item_id}/parent": {
+            "patch": {
+                "tags": [
+                    "Drives"
+                ],
+                "summary": "Move item",
+                "description": "Moves an item (file or directory) to a different parent directory.",
+                "operationId": "moveItem",
+                "parameters": [
+                    {
+                        "name": "item_id",
+                        "in": "path",
+                        "description": "Item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Move details",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ItemMoveRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Item moved successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Item not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/drives/items/{item_id}/name": {
+            "patch": {
+                "tags": [
+                    "Drives"
+                ],
+                "summary": "Rename item",
+                "description": "Renames an item (file or directory) by updating its name.",
+                "operationId": "renameItem",
+                "parameters": [
+                    {
+                        "name": "item_id",
+                        "in": "path",
+                        "description": "Item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Rename details",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ItemRenameRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Item renamed successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Item not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/drives/items/{item_id}": {
+            "get": {
+                "tags": [
+                    "Drives"
+                ],
+                "summary": "Get item",
+                "description": "Gets an item (file or directory) by its ID.",
+                "operationId": "getItem",
+                "parameters": [
+                    {
+                        "name": "item_id",
+                        "in": "path",
+                        "description": "Item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Item retrieved successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DriveItemResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Item not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Drives"
+                ],
+                "summary": "Delete item",
+                "description": "Deletes an item (file or directory) by its ID.",
+                "operationId": "deleteItem",
+                "parameters": [
+                    {
+                        "name": "item_id",
+                        "in": "path",
+                        "description": "Item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Item deleted successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Item not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/drives/items/{item_id}/download-url": {
+            "get": {
+                "tags": [
+                    "Drives"
+                ],
+                "summary": "Get item download URL",
+                "description": "Generates a download URL for the specified item.",
+                "operationId": "getItemDownloadUrl",
+                "parameters": [
+                    {
+                        "name": "item_id",
+                        "in": "path",
+                        "description": "Item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Download URL generated successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ItemDownloadResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Item not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/drives/items/{item_id}/binary": {
+            "get": {
+                "tags": [
+                    "Drives"
+                ],
+                "summary": "Download item binary content",
+                "description": "Downloads the binary content of a file. Redirects to download URL if no additional headers are required, otherwise proxies the download.",
+                "operationId": "downloadItem",
+                "parameters": [
+                    {
+                        "name": "item_id",
+                        "in": "path",
+                        "description": "Item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Binary content returned successfully (when proxy is needed)",
+                        "content": {
+                            "application/octet-stream": {}
+                        }
+                    },
+                    "303": {
+                        "description": "Redirect to download URL (when no additional headers needed)"
+                    },
+                    "404": {
+                        "description": "Item not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/connector/wps/doclibs": {
+            "get": {
+                "tags": [
+                    "WPS Connectors"
+                ],
+                "summary": "List available WPS doclibs",
+                "description": "Lists available WPS document libraries that can be connected as mount points. Uses the current user's WPS credential from database.",
+                "operationId": "listDoclibs",
+                "parameters": [
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "description": "Page size",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "example": 10
+                    },
+                    {
+                        "name": "continuation_token",
+                        "in": "query",
+                        "description": "Continuation token for pagination",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "Y6Wa982_Jj_A9-Kw40"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "WPS doclibs retrieved successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WPSConnectorListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "User not authenticated or WPS credential not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperWPSConnectorListResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/connector/status/{provider}": {
+            "get": {
+                "tags": [
+                    "Connectors"
+                ],
+                "summary": "Check connector status",
+                "description": "Checks if the current user has connected to the specified provider. Returns only the connection status.",
+                "operationId": "getStatus",
+                "parameters": [
+                    {
+                        "name": "provider",
+                        "in": "path",
+                        "description": "Provider name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "wps"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status retrieved successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConnectorStatusResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "User not authenticated",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperConnectorStatusResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/connector/login/{provider}": {
+            "get": {
+                "tags": [
+                    "Connectors"
+                ],
+                "summary": "Initiate OAuth login",
+                "description": "Initiates OAuth login flow for the specified provider. Returns a 303 redirect to the provider's OAuth authorization URL.",
+                "operationId": "login",
+                "parameters": [
+                    {
+                        "name": "provider",
+                        "in": "path",
+                        "description": "Provider name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "wps"
+                    },
+                    {
+                        "name": "api_endpoint",
+                        "in": "query",
+                        "description": "API host URL for OAuth callback",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "https://api.example.com"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "303": {
+                        "description": "Redirect to OAuth authorization URL"
+                    },
+                    "400": {
+                        "description": "Invalid request parameters"
+                    }
+                }
+            }
+        },
+        "/api/v1/connector/auth/{provider}": {
+            "get": {
+                "tags": [
+                    "Connectors"
+                ],
+                "summary": "Handle OAuth callback",
+                "description": "Handles OAuth callback from the provider. Receives authorization code and state, creates credential, and saves to database.",
+                "operationId": "authCallback",
+                "parameters": [
+                    {
+                        "name": "provider",
+                        "in": "path",
+                        "description": "Provider name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "wps"
+                    },
+                    {
+                        "name": "code",
+                        "in": "query",
+                        "description": "OAuth authorization code",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "abc123xyz"
+                    },
+                    {
+                        "name": "state",
+                        "in": "query",
+                        "description": "OAuth state parameter",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "random-state-string"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OAuth authentication successful",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConnectorAuthCallbackResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid callback parameters",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperConnectorAuthCallbackResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "User not authenticated",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperConnectorAuthCallbackResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/arena/documents/status": {
+            "get": {
+                "tags": [
+                    "Arena"
+                ],
+                "summary": "Get document status",
+                "description": "Query document processing status from both MemoryLake and Supermemory. Returns combined status: 'success' when both are done, 'processing' when any is still running, 'failed' when any has failed.",
+                "operationId": "getDocumentStatus",
+                "parameters": [
+                    {
+                        "name": "memorylake_document_id",
+                        "in": "query",
+                        "description": "MemoryLake project document ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "doc-a1b2c3d4e5f6g7h8"
+                    },
+                    {
+                        "name": "supermemory_document_id",
+                        "in": "query",
+                        "description": "Supermemory document ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "sm-12345"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status retrieved successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArenaDocumentStatusResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request - missing required fields",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/projects/{id}/apikeys/{apikeyId}": {
+            "delete": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Delete API key from project",
+                "description": "Deletes an API key from the project's dataset. This is a soft delete and the key will no longer be usable for authentication.",
+                "operationId": "deleteProjectApikey",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    {
+                        "name": "apikeyId",
+                        "in": "path",
+                        "description": "API Key ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "key-42d72643d1af4f22892f00f3d953c428"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "API key deleted successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperVoid"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project or API key not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/connector/wps/doclibs/{wps_drive_id}/connections": {
+            "delete": {
+                "tags": [
+                    "WPS Connectors"
+                ],
+                "summary": "Delete WPS connection",
+                "description": "Deletes a WPS connection including all associated mount points and the storage instance.",
+                "operationId": "deleteConnection",
+                "parameters": [
+                    {
+                        "name": "wps_drive_id",
+                        "in": "path",
+                        "description": "WPS Drive ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "wps-drive-123"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "WPS connection deleted successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperVoid"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "WPS connection not found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapper"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/connector/revoke/{provider}": {
+            "delete": {
+                "tags": [
+                    "Connectors"
+                ],
+                "summary": "Revoke connector",
+                "description": "Revokes the connector for the specified provider. Calls knowledge API to revoke the credential and soft deletes the database record.",
+                "operationId": "revokeConnector",
+                "parameters": [
+                    {
+                        "name": "provider",
+                        "in": "path",
+                        "description": "Provider name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "wps"
+                    },
+                    {
+                        "name": "X-User-ID",
+                        "in": "header",
+                        "description": "User ID for authentication and filtering (Required)",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "12345"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Connector revoked successfully",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperVoid"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "No credentials found for this provider",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperVoid"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "User not authenticated",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseWrapperVoid"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ProjectUpdateRequest": {
+                "type": "object",
+                "description": "Request payload for updating an existing project",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Updated name of the project",
+                        "example": "My Updated Project",
+                        "maxLength": 255,
+                        "minLength": 1
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Updated description of the project",
+                        "example": "Updated project description with new information",
+                        "maxLength": 2000,
+                        "minLength": 1
+                    }
+                }
+            },
+            "ResponseWrapper": {
+                "type": "object",
+                "description": "Standard API response wrapper",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates if the request was successful",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable message about the response",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "object",
+                        "description": "Response payload data"
+                    },
+                    "error_code": {
+                        "type": "string",
+                        "description": "Error code (present only on failures)",
+                        "example": "VALIDATION_ERROR"
+                    }
+                }
+            },
+            "ProjectResponse": {
+                "type": "object",
+                "description": "Project information response",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Unique project identifier",
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the project",
+                        "example": "My Project"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Detailed description of the project",
+                        "example": "This project contains research documents"
+                    },
+                    "datasetId": {
+                        "type": "string",
+                        "description": "ID of the dataset associated with this project",
+                        "example": "dataset-123"
+                    },
+                    "memoryId": {
+                        "type": "string",
+                        "description": "ID of the memory associated with this project",
+                        "example": "memory-456"
+                    },
+                    "deleted": {
+                        "type": "boolean",
+                        "description": "Soft delete flag",
+                        "example": false
+                    },
+                    "createdBy": {
+                        "type": "string",
+                        "description": "ID of the user who created this project",
+                        "example": 12345
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the project was created",
+                        "example": "2024-01-15T10:30:00Z"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the project was last updated",
+                        "example": "2024-01-20T14:45:00Z"
+                    },
+                    "deletedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the project was deleted (null if not deleted)",
+                        "example": null
+                    },
+                    "documentCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of documents associated with this project",
+                        "example": 5
+                    },
+                    "memoryCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of memories associated with this project",
+                        "example": 3
+                    }
+                }
+            },
+            "ProjectMemoryRequest": {
+                "type": "object",
+                "description": "Request payload for adding a memory item to a project",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "Path of the memory item",
+                        "example": "notes/meeting-2024-01-15.txt"
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "Content of the memory item",
+                        "example": "Meeting notes: discussed project timeline..."
+                    },
+                    "mimeType": {
+                        "type": "string",
+                        "description": "MIME type of the content",
+                        "example": "text/plain"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "description": "Additional metadata for the memory item"
+                    }
+                },
+                "required": [
+                    "content",
+                    "path"
+                ]
+            },
+            "ResponseWrapperVoid": {
+                "type": "object",
+                "description": "Standard API response wrapper",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates if the request was successful",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable message about the response",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "object",
+                        "description": "Response payload data"
+                    },
+                    "error_code": {
+                        "type": "string",
+                        "description": "Error code (present only on failures)",
+                        "example": "VALIDATION_ERROR"
+                    }
+                }
+            },
+            "ItemXattrSetRequest": {
+                "type": "object",
+                "description": "Request payload for setting extended attributes on an item",
+                "properties": {
+                    "x_attrs": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "description": "Extended attributes map",
+                        "example": {
+                            "key1": "value1",
+                            "key2": "value2"
+                        }
+                    }
+                },
+                "required": [
+                    "x_attrs"
+                ]
+            },
+            "CreateMultipartUploadRequest": {
+                "type": "object",
+                "properties": {
+                    "file_size": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "MultipartUploadInfo": {
+                "type": "object",
+                "properties": {
+                    "upload_id": {
+                        "type": "string"
+                    },
+                    "object_key": {
+                        "type": "string"
+                    },
+                    "part_items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PartItem"
+                        }
+                    }
+                }
+            },
+            "PartItem": {
+                "type": "object",
+                "properties": {
+                    "number": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "upload_url": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ResponseWrapperMultipartUploadInfo": {
+                "type": "object",
+                "description": "Standard API response wrapper",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates if the request was successful",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable message about the response",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MultipartUploadInfo",
+                        "description": "Response payload data"
+                    },
+                    "error_code": {
+                        "type": "string",
+                        "description": "Error code (present only on failures)",
+                        "example": "VALIDATION_ERROR"
+                    }
+                }
+            },
+            "CompleteMultipartUploadRequest": {
+                "type": "object",
+                "properties": {
+                    "upload_id": {
+                        "type": "string"
+                    },
+                    "object_key": {
+                        "type": "string"
+                    },
+                    "part_eTags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PartItemEtag"
+                        }
+                    }
+                },
+                "required": [
+                    "object_key",
+                    "part_eTags",
+                    "upload_id"
+                ]
+            },
+            "PartItemEtag": {
+                "type": "object",
+                "properties": {
+                    "number": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                    },
+                    "etag": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "etag",
+                    "number"
+                ]
+            },
+            "ProjectCreateRequest": {
+                "type": "object",
+                "description": "Request payload for creating a new project",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the project",
+                        "example": "My New Project",
+                        "maxLength": 255,
+                        "minLength": 1
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Detailed description of the project",
+                        "example": "This project contains documents and memories related to my research",
+                        "maxLength": 2000,
+                        "minLength": 0
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "ProjectDocumentRequest": {
+                "type": "object",
+                "description": "Project document import request",
+                "properties": {
+                    "drive_item_ids": {
+                        "type": "array",
+                        "description": "List of drive item IDs of the files to import",
+                        "example": [
+                            "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "drive_item_ids"
+                ]
+            },
+            "ProjectDocumentBatchCreateResponse": {
+                "type": "object",
+                "description": "Batch create project documents response",
+                "properties": {
+                    "success_count": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of successfully created documents",
+                        "example": 5
+                    },
+                    "failure_count": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of failed document creations",
+                        "example": 2
+                    }
+                }
+            },
+            "QuickAddDocumentRequest": {
+                "type": "object",
+                "description": "Request payload for quick add document to project",
+                "properties": {
+                    "object_key": {
+                        "type": "string",
+                        "description": "Object key (e.g., S3 key) of the uploaded file",
+                        "example": "documents/document.pdf"
+                    },
+                    "file_name": {
+                        "type": "string",
+                        "description": "File name to be used in My Space",
+                        "example": "my-document.pdf"
+                    }
+                },
+                "required": [
+                    "file_name",
+                    "object_key"
+                ]
+            },
+            "QuickAddDocumentResponse": {
+                "type": "object",
+                "description": "Response for quick add document to project",
+                "properties": {
+                    "drive_item_id": {
+                        "type": "string",
+                        "description": "Drive item ID of the created file",
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    "file_name": {
+                        "type": "string",
+                        "description": "Final file name (may include suffix if there was a name conflict)",
+                        "example": "my-document_1.pdf"
+                    },
+                    "my_space_item_id": {
+                        "type": "string",
+                        "description": "My Space folder item ID",
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:abc123"
+                    },
+                    "document_id": {
+                        "type": "string",
+                        "description": "Project document ID",
+                        "example": "doc-a1b2c3d4e5f6g7h8"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the file was created",
+                        "example": "2024-01-15T10:30:00Z"
+                    }
+                }
+            },
+            "PostDatasetXApikeyRequest": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PostDatasetXApikeyResponse": {
+                "type": "object",
+                "properties": {
+                    "idempotency_key": {
+                        "type": "string"
+                    },
+                    "apikey_id": {
+                        "type": "string"
+                    },
+                    "secret": {
+                        "type": "string"
+                    }
+                }
+            },
+            "DriveResponse": {
+                "type": "object",
+                "description": "Drive information response",
+                "properties": {
+                    "description": {
+                        "type": "string",
+                        "description": "Description of the drive",
+                        "example": "My Drive"
+                    },
+                    "drive_id": {
+                        "type": "string",
+                        "description": "Unique drive identifier",
+                        "example": "drive-6fd400a155134e5d9d6d6b17d2623f11"
+                    },
+                    "root_item_id": {
+                        "type": "string",
+                        "description": "Root item ID",
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the drive was created",
+                        "example": "2024-01-15T10:30:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Timestamp when the drive was last updated",
+                        "example": "2024-01-20T14:45:00Z"
+                    }
+                }
+            },
+            "MountPointCreateRequest": {
+                "type": "object",
+                "description": "Base request for creating a mount point",
+                "discriminator": {
+                    "propertyName": "driver_type"
+                },
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Mount point name (directory name)",
+                        "example": "WPS Documents"
+                    },
+                    "driver_type": {
+                        "type": "string",
+                        "description": "Driver type discriminator",
+                        "enum": [
+                            "wps"
+                        ],
+                        "example": "wps"
+                    }
+                },
+                "required": [
+                    "driver_type",
+                    "name"
+                ]
+            },
+            "WPSMountPointCreateRequest": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/MountPointCreateRequest"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "wps_drive_id": {
+                                "type": "string",
+                                "description": "WPS drive ID",
+                                "example": "wps-drive-id"
+                            }
+                        }
+                    }
+                ],
+                "description": "Request for creating a WPS mount point",
+                "required": [
+                    "driver_type",
+                    "name",
+                    "wps_drive_id"
+                ]
+            },
+            "FileCreateRequest": {
+                "type": "object",
+                "description": "Request payload for creating a file",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Item name",
+                        "example": "document.pdf"
+                    },
+                    "item_type": {
+                        "type": "string",
+                        "description": "Item type discriminator",
+                        "enum": [
+                            "file",
+                            "folder"
+                        ],
+                        "example": "file"
+                    },
+                    "object_key": {
+                        "type": "string",
+                        "description": "Object key (e.g., S3 key, OSS key)",
+                        "example": "documents/document.pdf"
+                    }
+                },
+                "required": [
+                    "item_type",
+                    "name",
+                    "object_key"
+                ]
+            },
+            "FolderCreateRequest": {
+                "type": "object",
+                "description": "Request payload for creating a folder",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Item name",
+                        "example": "document.pdf"
+                    },
+                    "item_type": {
+                        "type": "string",
+                        "description": "Item type discriminator",
+                        "enum": [
+                            "file",
+                            "folder"
+                        ],
+                        "example": "file"
+                    }
+                },
+                "required": [
+                    "item_type",
+                    "name"
+                ]
+            },
+            "ArenaProfileResponse": {
+                "type": "object",
+                "description": "Arena profile response containing the project ID",
+                "properties": {
+                    "projId": {
+                        "type": "string",
+                        "description": "Project ID associated with the user's arena profile",
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    "mem0OrgId": {
+                        "type": "string",
+                        "description": "Mem0 organization ID associated with the user's arena profile",
+                        "example": "org-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    "mem0ProjId": {
+                        "type": "string",
+                        "description": "Mem0 project ID associated with the user's arena profile",
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    "datasetId": {
+                        "type": "string",
+                        "description": "Dataset ID associated with the user's arena profile",
+                        "example": "dataset-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    }
+                }
+            },
+            "ResponseWrapperArenaProfileResponse": {
+                "type": "object",
+                "description": "Standard API response wrapper",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates if the request was successful",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable message about the response",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/ArenaProfileResponse",
+                        "description": "Response payload data"
+                    },
+                    "error_code": {
+                        "type": "string",
+                        "description": "Error code (present only on failures)",
+                        "example": "VALIDATION_ERROR"
+                    }
+                }
+            },
+            "ArenaDocumentRequest": {
+                "type": "object",
+                "description": "Request payload for creating an arena document",
+                "properties": {
+                    "project_id": {
+                        "type": "string",
+                        "description": "Project ID to associate the document with",
+                        "example": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+                    },
+                    "file_name": {
+                        "type": "string",
+                        "description": "File name for the document",
+                        "example": "document.pdf"
+                    },
+                    "object_key": {
+                        "type": "string",
+                        "description": "Object key from S3 upload",
+                        "example": "tmp/a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6"
+                    },
+                    "user_id": {
+                        "type": "string",
+                        "description": "User ID for Supermemory containerTags",
+                        "example": "user_123"
+                    }
+                },
+                "required": [
+                    "file_name",
+                    "object_key",
+                    "project_id",
+                    "user_id"
+                ]
+            },
+            "ArenaDocumentResponse": {
+                "type": "object",
+                "description": "Response payload for arena document creation",
+                "properties": {
+                    "drive_item_id": {
+                        "type": "string",
+                        "description": "Drive item ID of the created file",
+                        "example": "sc-xxx:abc123"
+                    },
+                    "file_name": {
+                        "type": "string",
+                        "description": "Final file name after conflict resolution",
+                        "example": "document_1.pdf"
+                    },
+                    "memorylake_document_id": {
+                        "type": "string",
+                        "description": "MemoryLake project document ID",
+                        "example": "doc-a1b2c3d4e5f6g7h8"
+                    },
+                    "supermemory_document_id": {
+                        "type": "string",
+                        "description": "Supermemory document ID",
+                        "example": "sm-12345"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Creation timestamp"
+                    }
+                }
+            },
+            "InitializeMem0ProjectsResponse": {
+                "type": "object",
+                "description": "Result of mem0 project initialization job",
+                "properties": {
+                    "initializedCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of projects for which mem0 project was created and bound",
+                        "example": 3
+                    },
+                    "failedCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of projects that failed to initialize",
+                        "example": 0
+                    }
+                }
+            },
+            "ItemMoveRequest": {
+                "type": "object",
+                "description": "Request payload for moving an item to a different parent",
+                "properties": {
+                    "parent_item_id": {
+                        "type": "string",
+                        "description": "New parent item ID",
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5",
+                        "pattern": "^sc-[a-z0-9]{32}:[a-z0-9-]+$"
+                    }
+                },
+                "required": [
+                    "parent_item_id"
+                ]
+            },
+            "ItemRenameRequest": {
+                "type": "object",
+                "description": "Request payload for renaming an item",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "New name for the item",
+                        "example": "new-folder-name"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "PageResponse": {
+                "type": "object",
+                "description": "Paginated response wrapper",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "description": "List of items in the current page",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "total": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Total number of items across all pages",
+                        "example": 100
+                    },
+                    "page": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Current page number (1-based)",
+                        "example": 1
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int32",
+                        "description": "Number of items per page",
+                        "example": 20
+                    },
+                    "totalPages": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                }
+            },
+            "GetMemoryXItemXResponse": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string"
+                    },
+                    "content": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "type": "object"
+                    },
+                    "item_id": {
+                        "type": "string"
+                    },
+                    "mime_type": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "GetDatasetXApikeyListResponse": {
+                "type": "object",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/GetDatasetXApikeyResponseItem"
+                        }
+                    },
+                    "continuation_token": {
+                        "type": "string"
+                    }
+                }
+            },
+            "GetDatasetXApikeyResponseItem": {
+                "type": "object",
+                "properties": {
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "apikey_id": {
+                        "type": "string"
+                    },
+                    "dataset_id": {
+                        "type": "string"
+                    },
+                    "secret_suffix": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    }
+                }
+            },
+            "DriveItemDTO": {
+                "type": "object",
+                "description": "Drive item (file or directory) information",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Item name",
+                        "example": "document.pdf"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "Item type",
+                        "enum": [
+                            "file",
+                            "directory"
+                        ],
+                        "example": "file"
+                    },
+                    "size": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "File size in bytes (only for files)",
+                        "example": 1024
+                    },
+                    "etag": {
+                        "type": "string",
+                        "description": "ETag for the item"
+                    },
+                    "item_id": {
+                        "type": "string",
+                        "description": "Item ID",
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    "parent_item_id": {
+                        "type": "string",
+                        "description": "Parent item ID",
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Creation timestamp"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Last update timestamp"
+                    },
+                    "x_attrs": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "description": "Extended attributes"
+                    },
+                    "mount_point": {
+                        "$ref": "#/components/schemas/MountPoint",
+                        "description": "Mount point details). If null, this is a regular file/directory"
+                    }
+                }
+            },
+            "DriveItemResponse": {
+                "type": "object",
+                "description": "Drive item information response",
+                "properties": {
+                    "item": {
+                        "$ref": "#/components/schemas/DriveItemDTO",
+                        "description": "Item details"
+                    }
+                }
+            },
+            "MountPoint": {
+                "type": "object",
+                "description": "Connector information for mount points",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Storage instance ID",
+                        "example": "sc-5c6bf0f82d624a20a6fa4696997bdd46"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Storage instance name"
+                    },
+                    "driver_type": {
+                        "type": "string",
+                        "description": "Driver type",
+                        "example": "driver.internal"
+                    }
+                }
+            },
+            "ItemDownloadResponse": {
+                "type": "object",
+                "description": "Item download URL response",
+                "properties": {
+                    "headers": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "description": "Additional headers required for download request"
+                    },
+                    "download_url": {
+                        "type": "string",
+                        "description": "Download URL generated by knowledge drive",
+                        "example": "https://example.com/presign/object"
+                    }
+                }
+            },
+            "FileTreeResponse": {
+                "type": "object",
+                "description": "File tree response",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "description": "List of files and directories",
+                        "items": {
+                            "$ref": "#/components/schemas/DriveItemDTO"
+                        }
+                    },
+                    "continuation_token": {
+                        "type": "string",
+                        "description": "Continuation token for pagination (null if last page)",
+                        "example": "Y6Wa982_Jj_A9-Kw40"
+                    }
+                }
+            },
+            "WPSConnectorListResponse": {
+                "type": "object",
+                "description": "Response for listing WPS doclibs",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "description": "List of WPS doclibs",
+                        "items": {
+                            "$ref": "#/components/schemas/WPSDoclibItem"
+                        }
+                    },
+                    "continuation_token": {
+                        "type": "string",
+                        "description": "Continuation token for pagination",
+                        "example": "Y6Wa982_Jj_A9-Kw40"
+                    }
+                },
+                "required": [
+                    "items"
+                ]
+            },
+            "WPSDoclibItem": {
+                "type": "object",
+                "description": "WPS doclib item",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Doclib name"
+                    },
+                    "drive_id": {
+                        "type": "string",
+                        "description": "WPS drive ID"
+                    },
+                    "connected": {
+                        "type": "boolean",
+                        "description": "Whether the doclib is connected",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "drive_id",
+                    "name"
+                ]
+            },
+            "ResponseWrapperWPSConnectorListResponse": {
+                "type": "object",
+                "description": "Standard API response wrapper",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates if the request was successful",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable message about the response",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/WPSConnectorListResponse",
+                        "description": "Response payload data"
+                    },
+                    "error_code": {
+                        "type": "string",
+                        "description": "Error code (present only on failures)",
+                        "example": "VALIDATION_ERROR"
+                    }
+                }
+            },
+            "ConnectorStatusResponse": {
+                "type": "object",
+                "description": "Connector status response",
+                "properties": {
+                    "connected": {
+                        "type": "boolean",
+                        "description": "Whether user has connected to this provider",
+                        "example": true
+                    }
+                }
+            },
+            "ResponseWrapperConnectorStatusResponse": {
+                "type": "object",
+                "description": "Standard API response wrapper",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates if the request was successful",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable message about the response",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/ConnectorStatusResponse",
+                        "description": "Response payload data"
+                    },
+                    "error_code": {
+                        "type": "string",
+                        "description": "Error code (present only on failures)",
+                        "example": "VALIDATION_ERROR"
+                    }
+                }
+            },
+            "ConnectorAuthCallbackResponse": {
+                "type": "object",
+                "description": "Connector OAuth authentication callback response",
+                "properties": {
+                    "provider": {
+                        "type": "string",
+                        "description": "Provider name",
+                        "example": "wps"
+                    }
+                }
+            },
+            "ResponseWrapperConnectorAuthCallbackResponse": {
+                "type": "object",
+                "description": "Standard API response wrapper",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "description": "Indicates if the request was successful",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable message about the response",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/ConnectorAuthCallbackResponse",
+                        "description": "Response payload data"
+                    },
+                    "error_code": {
+                        "type": "string",
+                        "description": "Error code (present only on failures)",
+                        "example": "VALIDATION_ERROR"
+                    }
+                }
+            },
+            "ArenaDocumentStatusResponse": {
+                "type": "object",
+                "description": "Response payload for arena document status",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "description": "Combined status of both MemoryLake and Supermemory",
+                        "enum": [
+                            "success",
+                            "processing",
+                            "failed"
+                        ],
+                        "example": "success"
+                    },
+                    "memorylake_status": {
+                        "type": "string",
+                        "description": "MemoryLake datasource status",
+                        "example": "okay"
+                    },
+                    "mem0_status": {
+                        "type": "string",
+                        "description": "Mem0 status",
+                        "example": "okay"
+                    },
+                    "supermemory_status": {
+                        "type": "string",
+                        "description": "Supermemory document status",
+                        "example": "done"
+                    }
+                }
+            },
+            "ProjectDocumentDeleteRequest": {
+                "type": "object",
+                "description": "Project document delete request",
+                "properties": {
+                    "ids": {
+                        "type": "array",
+                        "description": "List of project document IDs to delete",
+                        "example": [
+                            "doc-1234567890abcdef",
+                            "doc-abcdef1234567890"
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "ids"
+                ]
+            }
+        }
+    }
+}

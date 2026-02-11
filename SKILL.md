@@ -17,7 +17,10 @@ description: >
 
 MemoryLake is the memory layer for AI Agents. It ingests unstructured files (Excel, PDF, text, etc.),
 chunks and indexes them, and exposes them through a Streamable HTTP MCP Server for intelligent
-retrieval and analysis. This skill accesses the server directly via HTTP using `curl`.
+retrieval and analysis.
+
+This repo also includes an up-to-date OpenAPI spec for MemoryLake's Project/Drive APIs (see
+`references/memorylake-openapi.json`).
 
 ## Prerequisites
 
@@ -52,7 +55,11 @@ re-initialize with `init` before retrying. Minimize delay between init and the f
 | `create_memory_code_runner` | *(none)* | Create a Python executor, returns `executor_id` |
 | `run_memory_code` | `{"executor_id":"...","code":"..."}` | Execute Python code against data |
 
-See [references/mcp-tools.md](references/mcp-tools.md) for detailed parameters and response formats.
+See:
+- [references/mcp-tools.md](references/mcp-tools.md) for detailed MCP tool parameters and response formats.
+- `references/memorylake-openapi.json` for the REST API surface (Projects/Drives/Connectors/etc.).
+
+**Note:** The REST API requires `X-User-ID` on most endpoints (per OpenAPI spec).
 
 ## Workflow
 
