@@ -24,15 +24,51 @@ This repo also includes an up-to-date OpenAPI spec for MemoryLake's Project/Driv
 
 ## Prerequisites
 
-The user must provide a MemoryLake MCP Server URL with API key, e.g.:
+### 1) Get a MemoryLake API key
+
+1. Go to https://app.memorylake.ai/ and apply for a MemoryLake API key.
+2. Use the REST API base URL:
+
 ```
-https://ai.data.cloud/memorylake/mcp/v1?apikey=sk-dset-...
+https://app.memorylake.ai/openapi/memorylake
 ```
 
-## Client Script
+3. Authenticate requests with:
 
-Use `scripts/memorylake_client.sh` for all interactions. It handles MCP session initialization,
-JSON-RPC protocol, and SSE response parsing.
+- `Authorization: Bearer <your API key>`
+- `X-User-ID: <your user id>` (required for most endpoints)
+
+### 2) (Later) Get a Streamable HTTP MCP secret
+
+After you create a project, you can create a project API key that becomes a Streamable HTTP MCP secret:
+
+```
+https://ai.data.cloud/memorylake/mcp/v1?apikey=<secret>
+```
+
+## Client Scripts
+
+### REST API client (projects, uploads, documents)
+
+Use `scripts/memorylake_rest_client.sh` to:
+- Create/list projects
+- Create a project API key (MCP secret)
+- Upload documents (multipart)
+- Quick-add documents to a project
+- Poll project documents until `status=okay`
+
+It expects env vars:
+
+```bash
+export MEMORYLAKE_BASE_URL="https://app.memorylake.ai/openapi/memorylake"
+export MEMORYLAKE_API_KEY="<your api key>"
+export MEMORYLAKE_USER_ID="<your user id>"
+```
+
+### MCP client (search + fetch + code runner)
+
+Use `scripts/memorylake_client.sh` for Streamable HTTP MCP interactions. It handles MCP session
+initialization, JSON-RPC protocol, and SSE response parsing.
 
 ```bash
 # Initialize a session (required before any tool calls)
@@ -61,7 +97,86 @@ See:
 
 **Note:** The REST API requires `X-User-ID` on most endpoints (per OpenAPI spec).
 
-## Workflow
+## Typical End-to-End Workflow (REST → MCP)
+
+Follow this flow to create a project, ingest documents, then query/analyze them via MCP.
+
+### 1) Create a project (REST)
+
+```bash
+./scripts/memorylake_rest_client.sh projects:create '{
+  "name": "My Research Project",
+  "description": "Optional description"
+}'
+```
+
+### 2) List projects (REST)
+
+```bash
+./scripts/memorylake_rest_client.sh projects:list
+```
+
+### 3) Create a project API key (this becomes the MCP secret) (REST)
+
+```bash
+./scripts/memorylake_rest_client.sh projects:create-apikey <project_id> '{"description":"mcp"}'
+```
+
+Save the returned `secret` locally. That secret is used like:
+
+```
+https://ai.data.cloud/memorylake/mcp/v1?apikey=<secret>
+```
+
+### 4) Upload a document (multipart) (REST)
+
+```bash
+# 1) Ask server for presigned part upload URLs (file_size in bytes)
+./scripts/memorylake_rest_client.sh upload:create-multipart '{"file_size": 123456}' > upload.json
+
+# 2) Upload parts to presigned URLs, then complete multipart
+./scripts/memorylake_rest_client.sh upload:complete-multipart upload.json /path/to/file.pdf
+```
+
+You will end up with an `object_key` (from create-multipart), which is the server-side key for the uploaded file.
+
+### 5) Add the uploaded document into the project (quick-add) (REST)
+
+```bash
+./scripts/memorylake_rest_client.sh projects:quick-add <project_id> '{
+  "object_key": "<object_key>",
+  "file_name": "file.pdf"
+}'
+```
+
+If you have multiple documents, upload + quick-add **one by one**.
+
+### 6) Poll project documents until processed (REST)
+
+Check:
+
+```bash
+./scripts/memorylake_rest_client.sh projects:list-documents <project_id>
+```
+
+Document `status` values: `error`, `okay`, `running`, `pending`.
+
+Recommended polling interval: **5s** until all documents are `okay`.
+
+### 7) Use Streamable HTTP MCP to search/retrieve/analyze
+
+```bash
+MCP_URL="https://ai.data.cloud/memorylake/mcp/v1?apikey=<secret>"
+SESSION=$(./scripts/memorylake_client.sh "$MCP_URL" init)
+
+./scripts/memorylake_client.sh "$MCP_URL" "$SESSION" get_memorylake_metadata
+```
+
+Then do search/fetch/code-runner as usual.
+
+---
+
+## MCP Workflow (inside the MCP phase)
 
 ### 1. Initialize session and orient
 
